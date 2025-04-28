@@ -32,7 +32,10 @@ Thêm vào `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  lizzwe: ^0.0.1
+  lizzwe:
+    git:
+      url: https://github.com/tuta-dev-iotlink/lizzwe.git
+      ref: main
 ```
 
 Sau đó chạy:
@@ -153,7 +156,7 @@ StateBuilder(
 
 ## 📝 Ví dụ
 
-Xem thêm ví dụ trong thư mục `example/`.
+Xem thêm ví dụ trong thư mục `example/` của [GitHub repository](https://github.com/your-username/lizzwe).
 
 ---
 
