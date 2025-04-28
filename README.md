@@ -96,11 +96,11 @@ MultipleStateListener(
 final store = StateStore();
 
 // Tạo Observable
-final counter = store.create('counter', 0);
-final name = store.create('name', 'test');
+final counter = store.create(0);
+final name = store.create('test');
 
 // Lấy Observable
-final sameCounter = store.get<int>('counter');
+final sameCounter = store.get<int>(0);
 ```
 
 ---
@@ -135,7 +135,7 @@ counter.value++;
 final counter = Provider.of<int>(context);
 
 // Mới
-final counter = store.get<int>('counter');
+final counter = store.get<int>(0);
 ```
 
 ### Từ Bloc
