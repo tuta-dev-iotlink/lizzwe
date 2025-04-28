@@ -2,12 +2,20 @@ import 'package:lizzwe/lizzwe.dart';
 import '../models/todo.dart';
 
 class TodoStore {
-  final _store = StateStore();
+  final todos = Observable<List<Todo>>([]);
+  final isLoading = Observable<bool>(false);
+  final error = Observable<Exception?>(null);
 
-  // Observable states
-  late final todos = _store.create<List<Todo>>([]);
-  late final isLoading = _store.create<bool>(false);
-  late final error = _store.create<Object?>(null);
+  Future<void> loadTodos() async {
+    try {
+      isLoading.value = true;
+      error.value = null;
+    } catch (e) {
+      error.value = Exception(e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   Future<void> addTodo(String title) async {
     try {
@@ -21,7 +29,7 @@ class TodoStore {
       );
       todos.value = [...todos.value, newTodo];
     } catch (e) {
-      error.value = e;
+      error.value = Exception(e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -39,7 +47,7 @@ class TodoStore {
         return todo;
       }).toList();
     } catch (e) {
-      error.value = e;
+      error.value = Exception(e.toString());
     } finally {
       isLoading.value = false;
     }
@@ -52,13 +60,15 @@ class TodoStore {
 
       todos.value = todos.value.where((todo) => todo.id != id).toList();
     } catch (e) {
-      error.value = e;
+      error.value = Exception(e.toString());
     } finally {
       isLoading.value = false;
     }
   }
 
   void dispose() {
-    _store.clear();
+    todos.dispose();
+    isLoading.dispose();
+    error.dispose();
   }
 }

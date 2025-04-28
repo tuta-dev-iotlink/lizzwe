@@ -1,7 +1,7 @@
+import 'package:example/stores/todo_store.dart';
+import 'package:example/widgets/add_todo.dart';
+import 'package:example/widgets/todo_list.dart';
 import 'package:flutter/material.dart';
-import 'stores/todo_store.dart';
-import 'widgets/add_todo.dart';
-import 'widgets/todo_list.dart';
 
 void main() {
   runApp(const MyApp());
