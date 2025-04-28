@@ -47,6 +47,14 @@ flutter pub get
 ### 1. Tạo Observable
 ```dart
 final counter = Observable<int>(0);
+
+// Thêm listener
+counter.addListener(() {
+  print('Counter changed to: ${counter.value}');
+});
+
+// Cập nhật giá trị
+counter.value = 1; // Listener sẽ được gọi
 ```
 
 ### 2. Sử dụng StateBuilder
@@ -61,15 +69,84 @@ StateBuilder(
 ```dart
 StateListener(
   observable: counter,
-  listener: (value) => print('Count changed to: $value'),
+  listener: (previous, current) => print('Count changed from $previous to $current'),
   child: YourWidget(),
 )
 ```
 
-### 4. Sử dụng StateStore
+### 4. Sử dụng MultipleStateListener
+```dart
+MultipleStateListener(
+  observables: {
+    'counter': counter,
+    'name': name,
+  },
+  listener: (values) {
+    print('Counter: ${values['counter']}, Name: ${values['name']}');
+  },
+  child: YourWidget(),
+)
+```
+
+### 5. Sử dụng StateStore
 ```dart
 final store = StateStore();
+
+// Tạo Observable
 final counter = store.create('counter', 0);
+final name = store.create('name', 'test');
+
+// Lấy Observable
+final sameCounter = store.get<int>('counter');
+```
+
+---
+
+## ⚡ Performance
+
+**lizzwe** được thiết kế để tối ưu hiệu suất:**
+
+- Không sử dụng code generation
+- Không có overhead khi không có thay đổi
+- Chỉ rebuild widget khi cần thiết
+- Hỗ trợ buildWhen để kiểm soát rebuild
+
+---
+
+## 🔄 Migration Guide
+
+### Từ setState
+```dart
+// Cũ
+setState(() {
+  _counter++;
+});
+
+// Mới
+counter.value++;
+```
+
+### Từ Provider
+```dart
+// Cũ
+final counter = Provider.of<int>(context);
+
+// Mới
+final counter = store.get<int>('counter');
+```
+
+### Từ Bloc
+```dart
+// Cũ
+BlocBuilder<CounterBloc, CounterState>(
+  builder: (context, state) => Text('${state.count}'),
+)
+
+// Mới
+StateBuilder(
+  observable: counter,
+  builder: (context, value) => Text('$value'),
+)
 ```
 
 ---
