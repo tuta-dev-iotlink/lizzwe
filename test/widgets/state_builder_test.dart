@@ -6,111 +6,62 @@ import 'package:lizzwe/src/widgets/state_builder.dart';
 void main() {
   group('StateBuilder', () {
     late Observable<int> counter;
+    late int buildCount;
 
     setUp(() {
       counter = Observable<int>(0);
+      buildCount = 0;
     });
 
-    testWidgets('should build with initial value', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: StateBuilder<int>(
-            observable: counter,
-            builder: (context, value) => Text('Count: $value'),
-          ),
+    Widget buildTestWidget({bool Function(int, int)? buildWhen}) {
+      return MaterialApp(
+        home: StateBuilder<int>(
+          observable: counter,
+          buildWhen: buildWhen,
+          builder: (context, value) {
+            buildCount++;
+            return Text(value.toString());
+          },
         ),
       );
+    }
 
-      expect(find.text('Count: 0'), findsOneWidget);
+    testWidgets('should build with initial value', (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+
+      expect(find.text('0'), findsOneWidget);
+      expect(buildCount, 1);
     });
 
     testWidgets('should rebuild when value changes', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: StateBuilder<int>(
-            observable: counter,
-            builder: (context, value) => Text('Count: $value'),
-          ),
-        ),
-      );
+      await tester.pumpWidget(buildTestWidget());
+      expect(buildCount, 1);
 
       counter.value = 1;
       await tester.pump();
 
-      expect(find.text('Count: 1'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+      expect(buildCount, 2);
     });
 
     testWidgets('should not rebuild when buildWhen returns false',
         (tester) async {
-      int buildCount = 0;
-
       await tester.pumpWidget(
-        MaterialApp(
-          home: StateBuilder<int>(
-            observable: counter,
-            buildWhen: (previous, current) => current % 2 == 0,
-            builder: (context, value) {
-              buildCount++;
-              return Text('Count: $value');
-            },
-          ),
+        buildTestWidget(
+          buildWhen: (previous, current) => current % 2 == 0,
         ),
       );
-
-      expect(buildCount, 1); // Initial build
+      expect(buildCount, 1);
 
       counter.value = 1; // Odd number, shouldn't rebuild
       await tester.pump();
+      expect(find.text('0'), findsOneWidget);
       expect(buildCount, 1);
 
       counter.value = 2; // Even number, should rebuild
       await tester.pump();
+      expect(find.text('2'), findsOneWidget);
       expect(buildCount, 2);
-    });
-
-    testWidgets('should handle child widget correctly', (tester) async {
-      const childKey = Key('child');
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: StateBuilder<int>(
-            observable: counter,
-            builder: (context, value) => Column(
-              children: [
-                Text('Count: $value'),
-                const SizedBox(key: childKey),
-              ],
-            ),
-          ),
-        ),
-      );
-
-      expect(find.byKey(childKey), findsOneWidget);
-
-      counter.value = 1;
-      await tester.pump();
-
-      expect(find.byKey(childKey), findsOneWidget);
-    });
-
-    testWidgets('should dispose listeners when widget is removed',
-        (tester) async {
-      final observerKey = GlobalKey();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: StateBuilder<int>(
-            key: observerKey,
-            observable: counter,
-            builder: (context, value) => Text('Count: $value'),
-          ),
-        ),
-      );
-
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
-
-      // Should not throw error when updating after dispose
-      counter.value = 1;
     });
 
     testWidgets('should handle null values', (tester) async {
@@ -120,17 +71,45 @@ void main() {
         MaterialApp(
           home: StateBuilder<int?>(
             observable: nullableCounter,
-            builder: (context, value) => Text('Count: ${value ?? "null"}'),
+            builder: (context, value) {
+              buildCount++;
+              return Text(value?.toString() ?? 'null');
+            },
           ),
         ),
       );
 
-      expect(find.text('Count: null'), findsOneWidget);
+      expect(find.text('null'), findsOneWidget);
+      expect(buildCount, 1);
 
       nullableCounter.value = 1;
       await tester.pump();
 
-      expect(find.text('Count: 1'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+      expect(buildCount, 2);
+    });
+
+    testWidgets('should dispose listeners when widget is removed',
+        (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+
+      // Should not throw error when updating after dispose
+      counter.value = 1;
+    });
+
+    testWidgets('should rebuild only when value actually changes',
+        (tester) async {
+      await tester.pumpWidget(buildTestWidget());
+      expect(buildCount, 1);
+
+      counter.value = 0; // Same value
+      await tester.pump();
+      expect(buildCount, 1); // Should not rebuild
+
+      counter.value = 1; // Different value
+      await tester.pump();
+      expect(buildCount, 2); // Should rebuild
     });
   });
 }
