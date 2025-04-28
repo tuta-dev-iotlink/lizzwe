@@ -9,34 +9,15 @@ void main() {
       store = StateStore();
     });
 
-    test('should create and get observable', () {
-      final counter = store.create('counter', 0);
+    test('should create observable with initial value', () {
+      final counter = store.create(0);
       expect(counter.value, 0);
-
-      final sameCounter = store.get<int>('counter');
-      expect(sameCounter, counter);
-      expect(sameCounter.value, 0);
-    });
-
-    test('should throw when getting non-existent observable', () {
-      expect(
-        () => store.get<int>('non-existent'),
-        throwsA(isA<StateError>()),
-      );
-    });
-
-    test('should throw when creating duplicate observable', () {
-      store.create('counter', 0);
-      expect(
-        () => store.create('counter', 1),
-        throwsA(isA<StateError>()),
-      );
     });
 
     test('should handle multiple observables', () {
-      final counter = store.create('counter', 0);
-      final name = store.create('name', 'test');
-      final isLoading = store.create('loading', false);
+      final counter = store.create(0);
+      final name = store.create('test');
+      final isLoading = store.create(false);
 
       expect(counter.value, 0);
       expect(name.value, 'test');
@@ -46,65 +27,31 @@ void main() {
       name.value = 'updated';
       isLoading.value = true;
 
-      expect(store.get<int>('counter').value, 1);
-      expect(store.get<String>('name').value, 'updated');
-      expect(store.get<bool>('loading').value, true);
+      expect(counter.value, 1);
+      expect(name.value, 'updated');
+      expect(isLoading.value, true);
     });
 
     test('should handle null values', () {
-      final nullableCounter = store.create<int?>('nullableCounter', null);
+      final nullableCounter = store.create<int?>(null);
       expect(nullableCounter.value, null);
 
       nullableCounter.value = 1;
-      expect(store.get<int?>('nullableCounter').value, 1);
+      expect(nullableCounter.value, 1);
 
       nullableCounter.value = null;
-      expect(store.get<int?>('nullableCounter').value, null);
-    });
-
-    test('should maintain type safety', () {
-      store.create('counter', 0);
-
-      expect(
-        () => store.get<String>('counter'),
-        throwsA(isA<TypeError>()),
-      );
+      expect(nullableCounter.value, null);
     });
 
     test('should clear all observables', () {
-      store.create('counter', 0);
-      store.create('name', 'test');
+      final counter = store.create(0);
+      final name = store.create('test');
 
       store.clear();
 
-      expect(
-        () => store.get<int>('counter'),
-        throwsA(isA<StateError>()),
-      );
-      expect(
-        () => store.get<String>('name'),
-        throwsA(isA<StateError>()),
-      );
-    });
-
-    test('should remove single observable', () {
-      store.create('counter', 0);
-      store.create('name', 'test');
-
-      store.remove('counter');
-
-      expect(
-        () => store.get<int>('counter'),
-        throwsA(isA<StateError>()),
-      );
-      expect(store.get<String>('name').value, 'test');
-    });
-
-    test('should check if observable exists', () {
-      store.create('counter', 0);
-
-      expect(store.has('counter'), true);
-      expect(store.has('non-existent'), false);
+      // After clear, observables should be disposed
+      expect(() => counter.value, throwsA(isA<StateError>()));
+      expect(() => name.value, throwsA(isA<StateError>()));
     });
   });
 }
