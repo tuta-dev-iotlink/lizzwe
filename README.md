@@ -23,8 +23,6 @@ Không phụ thuộc vào các package phức tạp, chỉ sử dụng thuần D
 - `StateListener<T>`: Lắng nghe thay đổi mà không rebuild UI.
 - `MultipleStateListener`: Lắng nghe nhiều Observable cùng lúc.
 - `StateStore`: Tổ chức và quản lý nhiều Observable.
-- `AsyncObservable<T>` (coming soon): Hỗ trợ Future/Stream.
-- `StateLogger` (coming soon): Theo dõi log thay đổi state.
 
 ---
 
